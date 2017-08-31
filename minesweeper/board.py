@@ -76,6 +76,8 @@ class Cell(QtGui.QPushButton):
 				self.parent.cell_open()
 				self.setIcon(self.parent.settings.empty_icon)
 				self.setText(str(self.adjacent))
+				self.setStyleSheet('QPushButton {color: %s}' % self.parent.settings.number_color[self.adjacent])
+
 
 			self.setEnabled(False)
 

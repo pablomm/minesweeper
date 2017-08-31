@@ -4,7 +4,7 @@ from __future__ import division
 
 from webbrowser import open as webopen
 
-from PyQt4.QtGui import QMenu, QAction, QFormLayout, QLineEdit, QPushButton, QDialog, QActionGroup
+from PyQt4.QtGui import QMenu, QAction, QFormLayout, QLineEdit, QPushButton, QDialog, QActionGroup,QIntValidator
 from PyQt4.QtCore import QString
 
 

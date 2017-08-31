@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 
 from signal import signal, SIGINT, SIG_DFL
 from sys import argv, exit

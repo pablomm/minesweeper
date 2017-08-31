@@ -60,6 +60,7 @@ class Settings:
 
 		# Color of LCDnumbers
 		self.color = "#f9f2ec"
+		self.number_color = [None, 'blue', 'green','red','darkblue','darkred','LightSeaGreen' ,'black', 'darkgrey' ]
 
 		# Sound flag
 		self.sound = True
