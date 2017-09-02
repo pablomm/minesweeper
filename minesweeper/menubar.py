@@ -68,7 +68,7 @@ class AnimationMenu(QMenu):
 	def __init__(self, parent):
 
 		QMenu.__init__(self,parent)
-		self.setTitle(self.tr('Animation'))
+		self.setTitle("&" + self.tr('Animation'))
 		self.parent = parent
 
 		slow = QAction("&" + self.tr('Slow'), self)
@@ -210,7 +210,7 @@ class SizePopUP(QDialog):
 
 	def submit(self):
 
-		self.parent.parent.updateSize(int(self.xInput.text()) if not self.xInput.text().isEmpty() else self.parent.parent.settings.b_height,int(self.yInput.text()) if not self.yInput.text().isEmpty() else self.parent.parent.settings.b_width)
+		self.parent.parent.updateSize(max(int(self.xInput.text()),7) if not self.xInput.text().isEmpty() else self.parent.parent.settings.b_height,int(self.yInput.text()) if not self.yInput.text().isEmpty() else self.parent.parent.settings.b_width)
 		self.close()
 
 
