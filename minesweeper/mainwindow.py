@@ -40,6 +40,7 @@ class MainWindow(QtGui.QMainWindow):
 		#Add menuBar
 		self.menuBar().addMenu(menubar.FileMenu(self))
 		self.menuBar().addMenu(menubar.GameMenu(self))
+		self.menuBar().addMenu(menubar.OptionMenu(self))
 		self.menuBar().addMenu(menubar.AboutMenu(self))
 
 

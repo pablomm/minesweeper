@@ -10,6 +10,7 @@ class Settings:
 
 		# Translator instance
 		self.translator = QTranslator()
+		self.translations = []
 
 		# Folders
 		self.resource = 'resource/'
@@ -87,7 +88,7 @@ class Settings:
 		self.sunglasses_icon = QIcon(self.resource + 'sunglasses.png')
 
 		self.app.setWindowIcon(self.window_icon)
-		self.loadTranslation()
+
 
 	def loadTranslation(self):
 		self.translator.load(self.translate + "es_ES.qm")

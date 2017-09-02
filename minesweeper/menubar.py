@@ -4,7 +4,7 @@ from __future__ import division
 
 from webbrowser import open as webopen
 
-from PyQt4.QtGui import QMenu, QAction, QFormLayout, QLineEdit, QPushButton, QDialog, QActionGroup,QIntValidator
+from PyQt4.QtGui import QMenu, QAction, QFormLayout, QLineEdit, QPushButton, QDialog, QActionGroup, QIntValidator
 from PyQt4.QtCore import QString
 
 
@@ -36,32 +36,76 @@ class GameMenu(QMenu):
 	def __init__(self, parent):
 
 		QMenu.__init__(self,parent)
-		self.setTitle(self.tr('Options'))
-
+		self.setTitle(self.tr('Game'))
 		self.parent = parent
 		self.addMenu(SizeMenu(parent))
 		self.addMenu(DifficultyMenu(parent))
-		self.addMenu(LanguageMenu(self))
 
-		# Animation Opcion
+
+
+class OptionMenu(QMenu):
+	def __init__(self, parent):
+
+		QMenu.__init__(self,parent)
+		self.parent = parent
+		self.setTitle(self.tr('Options'))
+
 		sound = QAction("&" + self.tr('Sound'), self)
 		sound.setCheckable(True)
 		sound.setChecked(True)
 		sound.triggered.connect(self.mute)
 		self.addAction(sound)	
 
-		# Animation Opcion
-		animation = QAction("&" + self.tr('Animation'), self)
-		animation.setCheckable(True)
-		animation.setChecked(True)
-		animation.triggered.connect(self.cancel_delay)
-		self.addAction(animation)	
+		self.addMenu(AnimationMenu(self))
+		self.addMenu(LanguageMenu(self))
 
-	def cancel_delay(self):
-		self.parent.settings.open_delay = not self.parent.settings.open_delay
 
 	def mute(self):
 		self.parent.settings.sound = not self.parent.settings.sound
+
+
+class AnimationMenu(QMenu):
+	def __init__(self, parent):
+
+		QMenu.__init__(self,parent)
+		self.setTitle(self.tr('Animation'))
+		self.parent = parent
+
+		slow = QAction("&" + self.tr('Slow'), self)
+		slow.setCheckable(True)
+		slow.triggered.connect(lambda: self.animation_speed(2))
+		self.addAction(slow)
+
+		medium = QAction("&" + self.tr('Medium'), self)
+		medium.setCheckable(True)
+		medium.setChecked(True)
+		medium.triggered.connect(lambda: self.animation_speed(4))
+		self.addAction(medium)
+
+		fast = QAction("&" + self.tr('Fast'), self)
+		fast.setCheckable(True)
+		fast.triggered.connect(lambda: self.animation_speed(8))
+		self.addAction(fast)
+
+		disabled = QAction("&" + self.tr('Disabled'), self)
+		disabled.setCheckable(True)
+		disabled.triggered.connect(lambda: self.delay(False))
+		self.addAction(disabled)
+
+		self.newGameGroup = QActionGroup(self)
+		self.newGameGroup.addAction(slow)
+		self.newGameGroup.addAction(medium)
+		self.newGameGroup.addAction(fast)
+		self.newGameGroup.addAction(disabled)
+		self.newGameGroup.setExclusive(True)
+
+	def animation_speed(self, speed):
+		self.delay(True)
+		self.parent.parent.settings.delay_speed = speed
+
+	def delay(self, value):
+		self.parent.parent.settings.open_delay = value
+
 
 class AboutMenu(QMenu):
 	def __init__(self, parent):
@@ -70,6 +114,7 @@ class AboutMenu(QMenu):
 		self.parent = parent
 
 		license = QAction("&" + self.tr('License'), self)
+		license.triggered.connect(lambda: webopen(self.parent.settings.license_web_page))
 		self.addAction(license)
 
 		github = QAction("&" + self.tr('Go to github'), self)
@@ -78,8 +123,9 @@ class AboutMenu(QMenu):
 
 class LanguageMenu(QMenu):
 	def __init__(self, parent):
-		QMenu.__init__(self,"&" + parent.tr('Languages'),parent)
+		QMenu.__init__(self,parent)
 		self.parent = parent
+		self.setTitle("&" + self.tr('Languages'))
 
 		english = QAction("&" + self.tr('English'), self)
 		english.setCheckable(True)
@@ -103,7 +149,8 @@ class LanguageMenu(QMenu):
 class SizeMenu(QMenu):
 
 	def __init__(self,parent):
-		QMenu.__init__(self,"&" + parent.tr('Size'),parent)
+		QMenu.__init__(self,parent)
+		self.setTitle("&" + self.tr('Size'))
 
 		self.parent = parent
 		smallGame = QAction("&" + self.tr('Small'), self)
@@ -171,8 +218,9 @@ class SizePopUP(QDialog):
 class DifficultyMenu(QMenu):
 
 	def __init__(self, parent):
-		QMenu.__init__(self,"&" + parent.tr("Difficulty"),parent)
+		QMenu.__init__(self,parent)
 		self.parent = parent
+		self.setTitle("&" + self.tr('Difficulty'))
 
 
 		easy = QAction("&" + self.tr('Easy'), self)
