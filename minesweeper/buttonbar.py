@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from numpy import log10, floor
+from math import log10
 from PyQt4 import QtGui, QtCore
 
 class Clock(QtGui.QLCDNumber):
