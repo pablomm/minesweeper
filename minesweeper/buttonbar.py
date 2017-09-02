@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 
 from numpy import log10, floor
 from PyQt4 import QtGui, QtCore
@@ -42,7 +43,7 @@ class Flags(QtGui.QLCDNumber):
 
 	def start(self):
 
-		self.max = int(floor(log10(max(self.parent.settings.n_mines,1)))) + 1
+		self.max = int(log10(max(self.parent.settings.n_mines,1))) + 1
 
 		self.number(self.parent.settings.n_mines)
 

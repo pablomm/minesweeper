@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 
 from random import shuffle
 from PyQt4 import QtGui, QtCore, Qt

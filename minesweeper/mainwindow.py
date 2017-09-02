@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 
 from PyQt4 import QtGui, QtCore
 from PyQt4.phonon import Phonon
@@ -33,7 +34,6 @@ class MainWindow(QtGui.QMainWindow):
 
 		self.settings = setting
 
-		self.setWindowTitle('Minesweeper')
 		self.setSizePolicy(QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed,QtGui.QSizePolicy.Fixed))
 		self.laught = Sound(self.settings.laught_file,self)
 		self.applause = Sound(self.settings.applause_file,self)

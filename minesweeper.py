@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-
+# -*- coding: utf-8 -*-
 
 from os import chdir, path
 from signal import signal, SIGINT, SIG_DFL
@@ -19,7 +19,9 @@ if __name__ == '__main__':
 	app = QApplication(argv)
 	settings = Settings(app)
 
-	MainWindow(settings).show()
+	window = MainWindow(settings)
+	window.show()
+	window.setWindowTitle(window.tr('Minesweeper'))
 
 	exit(app.exec_())
 
