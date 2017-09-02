@@ -26,7 +26,7 @@ class Settings:
 		self.big_width = 20
 
 		self.web_page = 'https://github.com/pablomm/minesweeper'
-
+		self.license_web_page = 'https://github.com/pablomm/minesweeper/blob/master/LICENSE'
 
 		# Last size
 		self.l_height = self.medium_height
