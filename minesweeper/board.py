@@ -27,6 +27,10 @@ class Cell(QtGui.QPushButton):
 	def bomb(self):
 		return self._bomb
 
+	@bomb.setter
+	def bomb(self,value):
+		self._bomb = value
+
 	def flag_icon(self,flag=True):
 
 		if flag and not self.parent.settings.use_text:
@@ -51,6 +55,9 @@ class Cell(QtGui.QPushButton):
 		# Check opening flag
 		if not self.parent.settings.opening:
 			return False
+
+		if self.parent.fake_start:
+			self.parent.initialize_cells(self.x,self.y)
 
 		# Start the chrono if needed
 		if not self.parent.settings.started:
@@ -127,13 +134,9 @@ class Cell(QtGui.QPushButton):
 
 		return False
 
-		
-
-
-
 class Board(QtGui.QWidget):
 
-	def __init__(self, parent):
+	def __init__(self, parent, fake_start = False):
 		QtGui.QWidget.__init__(self, parent)
 		self.parent = parent
 		self.settings = parent.settings
@@ -145,10 +148,9 @@ class Board(QtGui.QWidget):
 		self.grid.setSpacing(0)
 		self.closed = self._x * self._y
 		self.setSizePolicy(QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed,QtGui.QSizePolicy.Fixed))
-		#self.setStyleSheet("QWidget {background-color: %s}" % "#e0e0d1")
+		self.fake_start = fake_start
 
-		self.initialize_board()
-		self.updateGeometry()
+		self.initialize_board(fake_start)
 
 
 
@@ -168,21 +170,19 @@ class Board(QtGui.QWidget):
 		if self.closed == self.n_bomb:
 			self.parent.win()
 
-	def initialize_board(self):
-		bombs = self.n_bomb * [True] + (self._x*self._y - self.n_bomb) * [False]
-
-		shuffle(bombs)
+	def initialize_board(self, fake_start):
 
 		for i in range(self._x):
 			self.cells.append(list())
 			for j in range(self._y):
 
-				cell = Cell(self,i,j,bombs[i*self._y + j])
+				cell = Cell(self,i,j)
 				self.grid.addWidget(cell, i+1, j)
 
 				self.cells[i].append(cell)
 
-		self.initialize_cells()
+		if not fake_start:
+			self.initialize_cells()
 
 	def open_adjacents(self, cell):
 
@@ -217,7 +217,35 @@ class Board(QtGui.QWidget):
 
 		self.parent.settings.animation = False
 
-	def initialize_cells(self):
+	def initialize_cells(self,x=0,y=0):
+
+		bombs = (self._x*self._y - self.n_bomb) * [False] + self.n_bomb * [True] 
+
+		if self.fake_start:
+			self.fake_start = False
+			n = 0
+			for i in range(-1,2):
+				for j in range(-1,2):
+					if x+i >= 0 and x+i < self._x and y+j >= 0 and y+j < self._y:
+						n += 1
+
+			safe = bombs[0:n]
+			rest = bombs[n:]
+			shuffle(rest)
+	
+			for i in range(-1,2):
+				for j in range(-1,2):
+					if x+i >= 0 and x+i < self._x and y+j >= 0 and y+j < self._y:
+						n -= 1
+						rest.insert(self._y*(x+i)+(y+j),safe[n])
+			bombs = rest
+		else:
+			shuffle(bombs)
+
+		for i in range(self._x):
+			for j in range(self._y):
+				self.cells[i][j].bomb = bombs[self._y*i + j]
+
 		for i in range(self._x):
 			for j in range(self._y):
 				self.cells[i][j].adjacent = sum(x.bomb for x in self.adjacents(i,j))

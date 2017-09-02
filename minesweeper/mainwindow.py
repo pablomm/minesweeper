@@ -132,7 +132,7 @@ class MainWindow(QtGui.QMainWindow):
 
 
 		if not old_board:
-			self.guiBoard = board.Board(self)
+			self.guiBoard = board.Board(self, self.settings.safe_start)
 		else:
 			self.guiBoard = old_board
 

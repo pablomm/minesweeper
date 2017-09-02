@@ -54,6 +54,8 @@ class Settings:
 		self.open_delay = True
 		self.delay_speed = 4
 
+		self.safe_start = True
+
 		# Game internal flags
 		self.started = False
 		self.finished = False

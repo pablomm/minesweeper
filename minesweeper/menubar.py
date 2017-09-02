@@ -41,6 +41,15 @@ class GameMenu(QMenu):
 		self.addMenu(SizeMenu(parent))
 		self.addMenu(DifficultyMenu(parent))
 
+		start = QAction("&" + self.tr('Safe start'), self)
+		start.setCheckable(True)
+		start.setChecked(self.parent.settings.safe_start)
+		start.triggered.connect(self.safe_start)
+		self.addAction(start)	
+
+	def safe_start(self):
+		self.parent.settings.safe_start = not self.parent.settings.safe_start
+
 
 
 class OptionMenu(QMenu):
