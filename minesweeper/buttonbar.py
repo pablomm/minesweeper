@@ -43,7 +43,7 @@ class Flags(QtGui.QLCDNumber):
 
 	def start(self):
 
-		self.max = int(log10(max(self.parent.settings.n_mines,1))) + 1
+		self.max = int(log10(max(self.parent.settings.n_mines,1))) + 2
 
 		self.number(self.parent.settings.n_mines)
 
