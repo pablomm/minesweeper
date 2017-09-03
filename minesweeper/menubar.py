@@ -61,7 +61,7 @@ class OptionMenu(QMenu):
 
 		sound = QAction("&" + self.tr('Sound'), self)
 		sound.setCheckable(True)
-		sound.setChecked(True)
+		sound.setChecked(self.parent.settings.sound)
 		sound.triggered.connect(self.mute)
 		self.addAction(sound)	
 
@@ -84,22 +84,29 @@ class AnimationMenu(QMenu):
 		slow.setCheckable(True)
 		slow.triggered.connect(lambda: self.animation_speed(2))
 		self.addAction(slow)
+		if self.parent.parent.settings.delay_speed == 2:
+			slow.setChecked(True)
 
 		medium = QAction("&" + self.tr('Medium'), self)
 		medium.setCheckable(True)
-		medium.setChecked(True)
 		medium.triggered.connect(lambda: self.animation_speed(4))
 		self.addAction(medium)
+		if self.parent.parent.settings.delay_speed == 4:
+			medium.setChecked(True)
 
 		fast = QAction("&" + self.tr('Fast'), self)
 		fast.setCheckable(True)
 		fast.triggered.connect(lambda: self.animation_speed(8))
 		self.addAction(fast)
+		if self.parent.parent.settings.delay_speed == 8:
+			fast.setChecked(True)
 
 		disabled = QAction("&" + self.tr('Disabled'), self)
 		disabled.setCheckable(True)
 		disabled.triggered.connect(lambda: self.delay(False))
 		self.addAction(disabled)
+		if self.parent.parent.settings.open_delay == False:
+			disabled.setChecked(True)
 
 		self.newGameGroup = QActionGroup(self)
 		self.newGameGroup.addAction(slow)
@@ -136,24 +143,32 @@ class LanguageMenu(QMenu):
 		self.parent = parent
 		self.setTitle("&" + self.tr('Languages'))
 
-		english = QAction("&" + self.tr('English'), self)
-		english.setCheckable(True)
-		english.setChecked(True)
-		english.triggered.connect(self.parent.parent.settings.loadTranslation)
-		self.addAction(english)	
-		
+		if not self.parent.parent.settings.translations:
+			empty = QAction('No languages avaible', self)	
+			empty.setEnabled(False)
+			self.addAction(empty)
+		else:
 
+			self.languageGroup = QActionGroup(self)
+			self.languageGroup.setExclusive(True)
 
-		spanish = QAction("&" + self.tr('Spanish'), self)
-		spanish.setCheckable(True)
-		spanish.triggered.connect(self.parent.parent.settings.loadTranslation)
-		self.addAction(spanish)	
+			l = QAction(self.tr("Default"), self)
+			l.triggered.connect(lambda: parent.parent.changeLanguage(None, None))
+			l.setCheckable(True)
+			if not self.parent.parent.settings.language:
+				l.setChecked(True)
+			self.languageGroup.addAction(l)
+			self.addAction(l)
 
-		french = QAction("&" + self.tr('French'), self)
-		french.setCheckable(True)
-		french.triggered.connect(self.parent.parent.settings.loadTranslation)
-		self.addAction(french)	
-
+			for language in self.parent.parent.settings.translations:
+				name, file, folder = language
+				l = QAction(name, self)
+				l.triggered.connect(lambda: parent.parent.changeLanguage(name,folder + file))
+				l.setCheckable(True)
+				if name == self.parent.parent.settings.language:
+					l.setChecked(True)
+				self.languageGroup.addAction(l)
+				self.addAction(l)
 
 class SizeMenu(QMenu):
 
@@ -169,7 +184,6 @@ class SizeMenu(QMenu):
 
 		mediumGame = QAction("&" + self.tr('Medium'), self)
 		mediumGame.setCheckable(True)
-		mediumGame.setChecked(True)
 		mediumGame.triggered.connect(lambda: parent.updateSize(parent.settings.medium_height,parent.settings.medium_width))
 		self.addAction(mediumGame)
 
@@ -189,6 +203,16 @@ class SizeMenu(QMenu):
 		self.newGameGroup.addAction(bigGame)
 		self.newGameGroup.addAction(customGame)
 		self.newGameGroup.setExclusive(True)
+
+		if parent.settings.small_height == parent.settings.b_height and parent.settings.small_width == parent.settings.b_width:
+			smallGame.setChecked(True)
+		elif parent.settings.medium_height == parent.settings.b_height and parent.settings.medium_width == parent.settings.b_width:
+			mediumGame.setChecked(True)
+		elif parent.settings.big_height == parent.settings.b_height and parent.settings.big_width == parent.settings.b_width:
+			bigGame.setChecked(True)
+		else:
+			customGame.setChecked(True)
+
 
 class SizePopUP(QDialog):
 	def __init__(self,parent):
@@ -239,7 +263,6 @@ class DifficultyMenu(QMenu):
 
 		normal = QAction("&" + self.tr('Normal'), self)
 		normal.setCheckable(True)
-		normal.setChecked(True)
 		normal.triggered.connect(lambda: self.parent.updateMines(self.parent.settings.normal))
 		self.addAction(normal)
 
@@ -260,7 +283,16 @@ class DifficultyMenu(QMenu):
 		self.difficultyGroup.addAction(insane)
 		self.difficultyGroup.setExclusive(True)
 
+		if self.parent.settings.mines_percent == self.parent.settings.easy:
+			easy.setChecked(True)
 
+		elif self.parent.settings.mines_percent == self.parent.settings.normal:
+			normal.setChecked(True)
+
+		elif self.parent.settings.mines_percent == self.parent.settings.hard:
+			hard.setChecked(True)
+		else:
+			insane.setChecked(True)
 
 class DifficultyPopUP(QDialog):
 	def __init__(self,parent):

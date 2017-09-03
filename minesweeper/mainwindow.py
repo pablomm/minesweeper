@@ -2,6 +2,7 @@
 
 from PyQt4 import QtGui, QtCore
 from PyQt4.phonon import Phonon
+from PyQt4.QtCore import QTranslator
 from buttonbar import ButtonBar
 import menubar
 import board
@@ -37,11 +38,7 @@ class MainWindow(QtGui.QMainWindow):
 		self.setSizePolicy(QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed,QtGui.QSizePolicy.Fixed))
 		self.laught = Sound(self.settings.laught_file,self)
 		self.applause = Sound(self.settings.applause_file,self)
-		#Add menuBar
-		self.menuBar().addMenu(menubar.FileMenu(self))
-		self.menuBar().addMenu(menubar.GameMenu(self))
-		self.menuBar().addMenu(menubar.OptionMenu(self))
-		self.menuBar().addMenu(menubar.AboutMenu(self))
+		self.createMenuBar()
 
 
 		self.markBar = ButtonBar(self)
@@ -173,6 +170,24 @@ class MainWindow(QtGui.QMainWindow):
 
 		self.setCentralWidget(self.centralwidget)
 		self.setFixedSize(self.layout().sizeHint())
+
+	def changeLanguage(self, name, file):
+		self.settings.app.removeTranslator(self.settings.translator)
+		self.settings.translator = QTranslator()
+		if file:
+			self.settings.translator.load(file)
+		self.settings.app.installTranslator(self.settings.translator)
+		self.settings.language = name
+		self.setWindowTitle(self.tr('Minesweeper'))
+		self.createMenuBar()
+
+	def createMenuBar(self):
+
+		self.menuBar().clear()
+		self.menuBar().addMenu(menubar.FileMenu(self))
+		self.menuBar().addMenu(menubar.GameMenu(self))
+		self.menuBar().addMenu(menubar.OptionMenu(self))
+		self.menuBar().addMenu(menubar.AboutMenu(self))
 
 
 

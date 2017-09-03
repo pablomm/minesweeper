@@ -1,7 +1,12 @@
 # -*- coding: utf-8 -*-
 
-from PyQt4.QtCore import QTranslator
+
+from fnmatch import fnmatch
+from os import listdir
+
+from PyQt4.QtCore import QTranslator,QLibraryInfo
 from PyQt4.QtGui import QIcon
+
 
 class Settings:
 	def __init__(self, app):
@@ -12,10 +17,13 @@ class Settings:
 		# Translator instance
 		self.translator = QTranslator()
 		self.translations = []
+		self.languages_names = {'es' : u'Español', 'en' : u'English', 'fr' : u'Français', 'de' : u'Deutsch'}
+		self.language = None
 
 		# Folders
 		self.resource = 'resource/'
 		self.translate = 'translate/'
+		self.translate_folders = [self.translate, str(QLibraryInfo.location(QLibraryInfo.TranslationsPath))]
 
 		# Predefined Sizes
 		self.small_height = 20
@@ -90,12 +98,21 @@ class Settings:
 		self.dead_icon = QIcon(self.resource +  'dead.png')
 		self.sunglasses_icon = QIcon(self.resource + 'sunglasses.png')
 
+		self.loadTranslation()
 		self.app.setWindowIcon(self.window_icon)
 
-
 	def loadTranslation(self):
-		self.translator.load(self.translate + "es_ES.qm")
-		self.app.installTranslator(self.translator)
+
+		for folder in self.translate_folders:
+			for file in listdir(folder):
+				if fnmatch(file, 'minesweeper_*.qm'):
+					short = file.replace(".","_",).split("_")[1]
+					try:				
+						self.translations.append((self.languages_names[short],file, folder))
+					except KeyError:
+						self.translations.append((short,file, folder))
+
+		#self.app.installTranslator(self.translator)
 
 
 
