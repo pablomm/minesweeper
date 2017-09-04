@@ -3,7 +3,7 @@
 #
 #	Minesweeper - Python implementation with PyQt4 of minesweeper game
 #
-#    Copyright (C) 2017  
+#    Copyright (C) 2017
 #			Pablo Marcos - pablo.marcosm@estudiante.uam.es
 #
 #    This program is free software: you can redistribute it and/or modify
@@ -31,16 +31,14 @@ from minesweeper.settings import Settings
 
 if __name__ == '__main__':
 
+    chdir(path.dirname(path.abspath(__file__)))
+    signal(SIGINT, SIG_DFL)
 
-	chdir(path.dirname(path.abspath(__file__)))
-	signal(SIGINT, SIG_DFL)
+    app = QApplication(argv)
+    settings = Settings(app)
 
-	app = QApplication(argv)
-	settings = Settings(app)
+    window = MainWindow(settings)
+    window.show()
+    window.setWindowTitle(window.tr('Minesweeper'))
 
-	window = MainWindow(settings)
-	window.show()
-	window.setWindowTitle(window.tr('Minesweeper'))
-
-	exit(app.exec_())
-
+    exit(app.exec_())

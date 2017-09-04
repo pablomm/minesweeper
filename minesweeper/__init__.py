@@ -1,7 +1,7 @@
 #
 #	Minesweeper - Python implementation with PyQt4 of minesweeper game
 #
-#    Copyright (C) 2017  
+#    Copyright (C) 2017
 #			Pablo Marcos - pablo.marcosm@estudiante.uam.es
 #
 #    This program is free software: you can redistribute it and/or modify

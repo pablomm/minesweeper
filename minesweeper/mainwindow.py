@@ -2,7 +2,7 @@
 #
 #	Minesweeper - Python implementation with PyQt4 of minesweeper game
 #
-#    Copyright (C) 2017  
+#    Copyright (C) 2017
 #			Pablo Marcos - pablo.marcosm@estudiante.uam.es
 #
 #    This program is free software: you can redistribute it and/or modify
@@ -29,192 +29,184 @@ import board
 
 from PyQt4 import QtTest
 
+
 class Sound(QtCore.QObject):
 
-	def __init__(self, soundFile,parent):
-		QtCore.QObject.__init__(parent)
-		self.parent = parent
-		self.soundFile = soundFile
+    def __init__(self, soundFile, parent):
+        QtCore.QObject.__init__(parent)
+        self.parent = parent
+        self.soundFile = soundFile
 
-		self.mediaObject = Phonon.MediaObject()
-		self._audioOutput = Phonon.AudioOutput(Phonon.MusicCategory)
-		self._path = Phonon.createPath(self.mediaObject, self._audioOutput)
-		self.mediaSource = Phonon.MediaSource(soundFile)
-		self.mediaObject.setCurrentSource(self.mediaSource)   
+        self.mediaObject = Phonon.MediaObject()
+        self._audioOutput = Phonon.AudioOutput(Phonon.MusicCategory)
+        self._path = Phonon.createPath(self.mediaObject, self._audioOutput)
+        self.mediaSource = Phonon.MediaSource(soundFile)
+        self.mediaObject.setCurrentSource(self.mediaSource)
 
-	def play(self):
-		if self.parent.settings.sound:
-			self.mediaObject.stop()
-			self.mediaObject.seek(0)
-			self.mediaObject.play()
+    def play(self):
+        if self.parent.settings.sound:
+            self.mediaObject.stop()
+            self.mediaObject.seek(0)
+            self.mediaObject.play()
+
 
 class MainWindow(QtGui.QMainWindow):
-	def __init__(self, setting):
-		QtGui.QMainWindow.__init__(self)
+    def __init__(self, setting):
+        QtGui.QMainWindow.__init__(self)
 
-		self.settings = setting
+        self.settings = setting
 
-		self.setSizePolicy(QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed,QtGui.QSizePolicy.Fixed))
-		self.laught = Sound(self.settings.laught_file,self)
-		self.applause = Sound(self.settings.applause_file,self)
-		self.createMenuBar()
+        self.setSizePolicy(QtGui.QSizePolicy(
+            QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed))
+        self.laught = Sound(self.settings.laught_file, self)
+        self.applause = Sound(self.settings.applause_file, self)
+        self.createMenuBar()
 
+        self.markBar = ButtonBar(self)
 
-		self.markBar = ButtonBar(self)
+        self.centralwidget = QtGui.QWidget()
+        self.setCentralWidget(self.centralwidget)
 
-		self.centralwidget = QtGui.QWidget()
-		self.setCentralWidget(self.centralwidget)
+        self.vLayout = QtGui.QVBoxLayout(self.centralwidget)
 
-		self.vLayout = QtGui.QVBoxLayout(self.centralwidget)
-		
-		self.vLayout.addWidget(self.markBar)
-	
-		self.guiBoard = board.Board(self)
-		self.vLayout.addWidget(self.guiBoard)
-		self.setFixedSize(self.layout().sizeHint())
+        self.vLayout.addWidget(self.markBar)
 
-		self.center()
+        self.guiBoard = board.Board(self)
+        self.vLayout.addWidget(self.guiBoard)
+        self.setFixedSize(self.layout().sizeHint())
 
-	def dead(self):
+        self.center()
 
-		self.markBar.clock.stop()
-		self.markBar.face.dead()
-		self.laught.play()
+    def dead(self):
 
-	def win(self):
+        self.markBar.clock.stop()
+        self.markBar.face.dead()
+        self.laught.play()
 
-		if not self.settings.finished:
-			self.settings.finished = True
-			self.markBar.clock.stop()
-			self.markBar.face.sunglasses()
-			self.applause.play()
+    def win(self):
 
+        if not self.settings.finished:
+            self.settings.finished = True
+            self.markBar.clock.stop()
+            self.markBar.face.sunglasses()
+            self.applause.play()
 
-	def start_game(self):
-		if	self.settings.started:
-			return
+    def start_game(self):
+        if self.settings.started:
+            return
 
-		self.settings.started = True
-		self.markBar.face.thinking()
-		self.markBar.clock.start()
+        self.settings.started = True
+        self.markBar.face.thinking()
+        self.markBar.clock.start()
 
-	def updateSize(self, height, width):
+    def updateSize(self, height, width):
 
-		self.settings.b_height = height
-		self.settings.b_width = width
+        self.settings.b_height = height
+        self.settings.b_width = width
 
-		self.updateMines()
+        self.updateMines()
 
-	def updateMines(self, mines_percent=None):
+    def updateMines(self, mines_percent=None):
 
-		if mines_percent:
-			self.settings.mines_percent = mines_percent
-		
-		self.settings.n_mines = max(int(self.settings.mines_percent*self.settings.b_height*self.settings.b_width),1)
+        if mines_percent:
+            self.settings.mines_percent = mines_percent
 
-		self.new_game()
+        self.settings.n_mines = max(int(
+            self.settings.mines_percent * self.settings.b_height * self.settings.b_width), 1)
 
+        self.new_game()
 
+    def new_game(self, old_board=None):
 
-	def new_game(self, old_board=None):
+        resize = False
 
+        if self.settings.b_height != self.settings.l_height or self.settings.b_width != self.settings.l_width:
+            resize = True
 
-		resize = False
+        self.settings.l_height = self.settings.b_height
+        self.settings.l_width = self.settings.b_width
 
-		if self.settings.b_height != self.settings.l_height or self.settings.b_width != self.settings.l_width:
-			resize = True
+        if resize:
+            self.new_game_resized(old_board)
+            return
 
-		self.settings.l_height = self.settings.b_height 
-		self.settings.l_width = self.settings.b_width
+        if self.settings.animation or self.settings.opening:
+            self.settings.animation = False
+            self.settings.opening = False
+            QtTest.QTest.qWait(2 * self.settings.wait)
 
+        self.guiBoard.deleteLater()
+        self.markBar.flags.start()
+        self.settings.started = False
+        self.settings.finished = False
+        self.markBar.clock.stop()
+        self.markBar.clock.reset()
+        self.markBar.face.sleeping()
 
-		if resize:
-			self.new_game_resized(old_board)
-			return
+        if not old_board:
+            self.guiBoard = board.Board(self, self.settings.safe_start)
+        else:
+            self.guiBoard = old_board
 
-		if self.settings.animation or self.settings.opening:
-			self.settings.animation = False
-			self.settings.opening = False
-			QtTest.QTest.qWait(2*self.settings.wait)
+        self.vLayout.addWidget(self.guiBoard)
+        self.guiBoard.updateGeometry()
+        # self.vLayout.updateGeometry()
+        self.centralwidget.updateGeometry()
+        self.updateGeometry()
+        self.centralwidget.setFixedSize(self.centralwidget.sizeHint())
 
+        self.setFixedSize(self.sizeHint())
 
-		self.guiBoard.deleteLater()
-		self.markBar.flags.start()
-		self.settings.started = False
-		self.settings.finished = False
-		self.markBar.clock.stop()
-		self.markBar.clock.reset()
-		self.markBar.face.sleeping()
+    def new_game_resized(self, old_board=None):
 
+        if self.settings.animation:
+            self.settings.animation = False
+            QtTest.QTest.qWait(2 * self.settings.wait)
 
-		if not old_board:
-			self.guiBoard = board.Board(self, self.settings.safe_start)
-		else:
-			self.guiBoard = old_board
+        self.settings.started = False
+        self.settings.finished = False
+        self.markBar.clock.stop()
+        self.lastWidget = self.centralwidget
 
-		self.vLayout.addWidget(self.guiBoard)
-		self.guiBoard.updateGeometry()
-		#self.vLayout.updateGeometry()
-		self.centralwidget.updateGeometry()
-		self.updateGeometry()
-		self.centralwidget.setFixedSize(self.centralwidget.sizeHint())
+        if not old_board:
+            self.guiBoard = board.Board(self)
+        else:
+            self.guiBoard = old_board
 
-		self.setFixedSize(self.sizeHint())
+        self.markBar = ButtonBar(self)
+        self.centralwidget = QtGui.QWidget()
 
-	def new_game_resized(self, old_board=None):
+        self.vLayout = QtGui.QVBoxLayout(self.centralwidget)
 
-		if self.settings.animation:
-			self.settings.animation = False
-			QtTest.QTest.qWait(2*self.settings.wait)
+        self.vLayout.addWidget(self.markBar)
 
-		self.settings.started = False
-		self.settings.finished = False
-		self.markBar.clock.stop()
-		self.lastWidget = self.centralwidget
+        self.vLayout.addWidget(self.guiBoard)
 
-		if not old_board:
-			self.guiBoard = board.Board(self)
-		else:
-			self.guiBoard = old_board
+        self.setCentralWidget(self.centralwidget)
+        self.setFixedSize(self.layout().sizeHint())
 
-		self.markBar = ButtonBar(self)
-		self.centralwidget = QtGui.QWidget()
+    def changeLanguage(self, name, file):
+        self.settings.app.removeTranslator(self.settings.translator)
+        self.settings.translator = QTranslator()
+        if file:
+            self.settings.translator.load(file)
+        self.settings.app.installTranslator(self.settings.translator)
+        self.settings.language = name
+        self.setWindowTitle(self.tr('Minesweeper'))
+        self.createMenuBar()
 
+    def createMenuBar(self):
 
-		self.vLayout = QtGui.QVBoxLayout(self.centralwidget)
-		
-		self.vLayout.addWidget(self.markBar)
+        self.menuBar().clear()
+        self.menuBar().addMenu(menubar.FileMenu(self))
+        self.menuBar().addMenu(menubar.GameMenu(self))
+        self.menuBar().addMenu(menubar.OptionMenu(self))
+        self.menuBar().addMenu(menubar.AboutMenu(self))
 
-		self.vLayout.addWidget(self.guiBoard)
-
-		self.setCentralWidget(self.centralwidget)
-		self.setFixedSize(self.layout().sizeHint())
-
-	def changeLanguage(self, name, file):
-		self.settings.app.removeTranslator(self.settings.translator)
-		self.settings.translator = QTranslator()
-		if file:
-			self.settings.translator.load(file)
-		self.settings.app.installTranslator(self.settings.translator)
-		self.settings.language = name
-		self.setWindowTitle(self.tr('Minesweeper'))
-		self.createMenuBar()
-
-	def createMenuBar(self):
-
-		self.menuBar().clear()
-		self.menuBar().addMenu(menubar.FileMenu(self))
-		self.menuBar().addMenu(menubar.GameMenu(self))
-		self.menuBar().addMenu(menubar.OptionMenu(self))
-		self.menuBar().addMenu(menubar.AboutMenu(self))
-
-
-
-	def center(self):
-		frameGm = self.frameGeometry()
-		screen = QtGui.QApplication.desktop().screenNumber(QtGui.QApplication.desktop().cursor().pos())
-		centerPoint = QtGui.QApplication.desktop().screenGeometry(screen).center()
-		frameGm.moveCenter(centerPoint)
-		self.move(frameGm.topLeft())
-
-
+    def center(self):
+        frameGm = self.frameGeometry()
+        screen = QtGui.QApplication.desktop().screenNumber(
+            QtGui.QApplication.desktop().cursor().pos())
+        centerPoint = QtGui.QApplication.desktop().screenGeometry(screen).center()
+        frameGm.moveCenter(centerPoint)
+        self.move(frameGm.topLeft())

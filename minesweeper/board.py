@@ -2,7 +2,7 @@
 #
 #	Minesweeper - Python implementation with PyQt4 of minesweeper game
 #
-#    Copyright (C) 2017  
+#    Copyright (C) 2017
 #			Pablo Marcos - pablo.marcosm@estudiante.uam.es
 #
 #    This program is free software: you can redistribute it and/or modify
@@ -27,304 +27,295 @@ from PyQt4 import QtTest
 
 from sets import Set
 
+
 class Cell(QtGui.QPushButton):
 
-	def __init__(self, parent,x,y, bomb=False, size=20, adjacent=0):
-		QtGui.QPushButton.__init__(self, " ")
-		self.parent = parent
-		self._bomb = bomb
-		self.adjacent = adjacent
-		self.opened = False
-		self.marked = False
-		self.size = size
-		self.setFixedSize(self.parent.settings.icon_size,self.parent.settings.icon_size)
-		self.x = x
-		self.y = y
-		self.explored = False
+    def __init__(self, parent, x, y, bomb=False, size=20, adjacent=0):
+        QtGui.QPushButton.__init__(self, " ")
+        self.parent = parent
+        self._bomb = bomb
+        self.adjacent = adjacent
+        self.opened = False
+        self.marked = False
+        self.size = size
+        self.setFixedSize(self.parent.settings.icon_size,
+                          self.parent.settings.icon_size)
+        self.x = x
+        self.y = y
+        self.explored = False
 
-	@property
-	def bomb(self):
-		return self._bomb
+    @property
+    def bomb(self):
+        return self._bomb
 
-	@bomb.setter
-	def bomb(self,value):
-		self._bomb = value
+    @bomb.setter
+    def bomb(self, value):
+        self._bomb = value
 
-	def flag_icon(self,flag=True):
+    def flag_icon(self, flag=True):
 
-		if flag and not self.parent.settings.use_text:
-			# Sets flag icon
-			self.setIcon(self.parent.settings.flag_icon)
-			self.setIconSize(self.rect().size())
+        if flag and not self.parent.settings.use_text:
+            # Sets flag icon
+            self.setIcon(self.parent.settings.flag_icon)
+            self.setIconSize(self.rect().size())
 
-		elif flag:
-			# Sets and ? if icon is disabled
-			self.setText("?")
+        elif flag:
+            # Sets and ? if icon is disabled
+            self.setText("?")
 
-		elif self.parent.settings.use_text:
-			# Clear the ? if icon is not enabled
-			self.setText(" ")
-		else:
-			# Clears the icon
-			self.setIcon(self.parent.settings.empty_icon)
+        elif self.parent.settings.use_text:
+            # Clear the ? if icon is not enabled
+            self.setText(" ")
+        else:
+            # Clears the icon
+            self.setIcon(self.parent.settings.empty_icon)
 
+    def open(self, game_over=False):
 
-	def open(self,game_over=False):
+        # Check opening flag
+        if not self.parent.settings.opening:
+            return False
 
-		# Check opening flag
-		if not self.parent.settings.opening:
-			return False
+        if self.parent.fake_start:
+            self.parent.initialize_cells(self.x, self.y)
 
-		if self.parent.fake_start:
-			self.parent.initialize_cells(self.x,self.y)
+        # Start the chrono if needed
+        if not self.parent.settings.started:
+            self.parent.parent.start_game()
 
-		# Start the chrono if needed
-		if not self.parent.settings.started:
-			self.parent.parent.start_game()
+        if not self.opened:
+            self.opened = True
+            self.setFlat(True)
 
+            if self._bomb:
+                self.setIcon(self.parent.settings.mine_icon)
 
-		if not self.opened:
-			self.opened = True
-			self.setFlat(True)
+                if not game_over:
+                    self.parent.game_over()
 
-			if self._bomb:
-				self.setIcon(self.parent.settings.mine_icon)
+            elif not self.adjacent:
+                self.setIcon(self.parent.settings.empty_icon)
+                self.parent.cell_open()
+                if not game_over:
+                    self.parent.open_adjacents(self)
 
-				if not game_over:
-					self.parent.game_over()
+            else:
+                self.parent.cell_open()
+                self.setIcon(self.parent.settings.empty_icon)
+                self.setText(str(self.adjacent))
+                self.setStyleSheet('QPushButton {color: %s; font-weight: bold}' %
+                                   self.parent.settings.number_color[self.adjacent])
 
-			elif not self.adjacent:
-				self.setIcon(self.parent.settings.empty_icon)
-				self.parent.cell_open()
-				if not game_over:
-					self.parent.open_adjacents(self)
+            self.setEnabled(False)
 
-			else:
-				self.parent.cell_open()
-				self.setIcon(self.parent.settings.empty_icon)
-				self.setText(str(self.adjacent))
-				self.setStyleSheet('QPushButton {color: %s; font-weight: bold}' % self.parent.settings.number_color[self.adjacent])
+            return self.adjacent if not self.bomb else -1
 
+        return 1
 
-			self.setEnabled(False)
+    def mark(self):
 
-			return self.adjacent if not self.bomb else -1
+        # Start the chrono if needed
+        if not self.parent.settings.started:
+            self.parent.parent.start_game()
 
-		return 1
+        # Change the flag state
+        self.marked = not self.marked
 
-	def mark(self):
+        if self.marked:
+            # Decrease the flag counter and puts icon
+            self.parent.parent.markBar.flags.decrease()
+            self.flag_icon(True)
+        else:
+            # Increase the flag counter and clear icon
+            self.parent.parent.markBar.flags.increase()
+            self.flag_icon(False)
 
-		# Start the chrono if needed
-		if not self.parent.settings.started:
-			self.parent.parent.start_game()
+        return self.marked
 
-		# Change the flag state
-		self.marked = not self.marked
+    def mousePressEvent(self, event):
 
-		if self.marked:
-			# Decrease the flag counter and puts icon
-			self.parent.parent.markBar.flags.decrease()
-			self.flag_icon(True)
-		else:
-			# Increase the flag counter and clear icon
-			self.parent.parent.markBar.flags.increase()
-			self.flag_icon(False)
+        if self.parent.settings.finished:
+            return
 
-		return self.marked
+        if event.button() == QtCore.Qt.LeftButton:
+            if not self.marked and not self.opened:
+                self.parent.settings.opening = True
+                QtGui.QPushButton.mousePressEvent(self, event)
+                self.open()
+                self.parent.settings.opening = False
+            return
 
-	def mousePressEvent(self,event):
+        elif event.button() == QtCore.Qt.RightButton:
+            if not self.opened:
+                QtGui.QPushButton.mousePressEvent(self, event)
+                self.mark()
+            return
 
- 		if self.parent.settings.finished:
-			return
+        return False
 
-		if event.button() == QtCore.Qt.LeftButton:
-			if not self.marked and not self.opened:
-				self.parent.settings.opening = True
-				QtGui.QPushButton.mousePressEvent(self,event)
-				self.open()
-				self.parent.settings.opening = False
-			return
-
-		elif event.button() == QtCore.Qt.RightButton:
-			if not self.opened:
-				QtGui.QPushButton.mousePressEvent(self,event)
-				self.mark()
-			return
-
-		return False
 
 class Board(QtGui.QWidget):
 
-	def __init__(self, parent, fake_start = False):
-		QtGui.QWidget.__init__(self, parent)
-		self.parent = parent
-		self.settings = parent.settings
-		self._x = self.settings.b_width
-		self._y = self.settings.b_height
-		self.n_bomb = self.settings.n_mines
-		self.cells = []
-		self.grid = QtGui.QGridLayout(self)
-		self.grid.setSpacing(0)
-		self.closed = self._x * self._y
-		self.setSizePolicy(QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed,QtGui.QSizePolicy.Fixed))
-		self.fake_start = fake_start
+    def __init__(self, parent, fake_start=False):
+        QtGui.QWidget.__init__(self, parent)
+        self.parent = parent
+        self.settings = parent.settings
+        self._x = self.settings.b_width
+        self._y = self.settings.b_height
+        self.n_bomb = self.settings.n_mines
+        self.cells = []
+        self.grid = QtGui.QGridLayout(self)
+        self.grid.setSpacing(0)
+        self.closed = self._x * self._y
+        self.setSizePolicy(QtGui.QSizePolicy(
+            QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed))
+        self.fake_start = fake_start
 
-		self.initialize_board(fake_start)
+        self.initialize_board(fake_start)
 
+    def adjacents(self, x, y):
 
+        cells = []
+        for i in range(-1, 2):
+            for j in range(-1, 2):
+                if (i != 0 or j != 0) and x + i >= 0 and x + \
+                        i < self._x and y + j >= 0 and y + j < self._y:
+                    cells.append(self.cells[x + i][y + j])
 
-	def adjacents(self,x,y):
-		
-		cells = []
-		for i in range(-1,2):
-			for j in range(-1,2):
-				if (i!=0 or j!=0) and x+i >= 0 and x+i < self._x and y+j >= 0 and y+j < self._y:
-					cells.append(self.cells[x+i][y+j])
+        return cells
 
-		return cells
+    def cell_open(self):
 
-	def cell_open(self):
+        self.closed -= 1
+        if self.closed == self.n_bomb:
+            self.parent.win()
 
-		self.closed -= 1
-		if self.closed == self.n_bomb:
-			self.parent.win()
+    def initialize_board(self, fake_start):
 
-	def initialize_board(self, fake_start):
+        for i in range(self._x):
+            self.cells.append(list())
+            for j in range(self._y):
 
-		for i in range(self._x):
-			self.cells.append(list())
-			for j in range(self._y):
+                cell = Cell(self, i, j)
+                self.grid.addWidget(cell, i + 1, j)
 
-				cell = Cell(self,i,j)
-				self.grid.addWidget(cell, i+1, j)
+                self.cells[i].append(cell)
 
-				self.cells[i].append(cell)
+        if not fake_start:
+            self.initialize_cells()
 
-		if not fake_start:
-			self.initialize_cells()
+    def open_adjacents(self, cell):
 
-	def open_adjacents(self, cell):
+        self.parent.settings.animation = True
 
-		self.parent.settings.animation = True
+        cells_open = Set([cell])
+        cells_explored = Set()
 
-		cells_open = Set([cell])
-		cells_explored = Set()
+        while cells_open:
+            c = cells_open.pop()
+            if not c.explored:
+                c.explored = True
+                cells_explored.add(c)
 
-		while cells_open:
-			c = cells_open.pop()
-			if not c.explored:
-				c.explored = True
-				cells_explored.add(c)
+                if not c.adjacent and not c.bomb:
+                    cells_open |= Set(self.adjacents(c.x, c.y))
 
-				if not c.adjacent and not c.bomb:
-					cells_open |= Set(self.adjacents(c.x,c.y))
+        for c in cells_explored:
+            c.explored = False
 
+        # shuffle(cells)
+        i = 0
+        for c in cells_explored:
+            i = (i + 1) % self.parent.settings.delay_speed
+            if not self.parent.settings.animation:
+                break
 
-		for c in cells_explored:
-			c.explored = False
+            c.open(True)
+            if self.settings.open_delay and not i:
+                QtTest.QTest.qWait(self.settings.wait)
 
-		#shuffle(cells)
-		i = 0
-		for c in cells_explored:
-			i = (i+1) % self.parent.settings.delay_speed
-			if not self.parent.settings.animation:
-				break
+        self.parent.settings.animation = False
 
-			c.open(True)
-			if self.settings.open_delay and not i:
-				QtTest.QTest.qWait(self.settings.wait)
+    def initialize_cells(self, x=0, y=0):
 
-		self.parent.settings.animation = False
+        bombs = (self._x * self._y - self.n_bomb) * \
+            [False] + self.n_bomb * [True]
 
-	def initialize_cells(self,x=0,y=0):
+        if self.fake_start:
+            self.fake_start = False
+            n = 0
+            for i in range(-1, 2):
+                for j in range(-1, 2):
+                    if x + i >= 0 and x + i < self._x and y + j >= 0 and y + j < self._y:
+                        n += 1
 
-		bombs = (self._x*self._y - self.n_bomb) * [False] + self.n_bomb * [True] 
+            safe = bombs[0:n]
+            rest = bombs[n:]
+            shuffle(rest)
 
-		if self.fake_start:
-			self.fake_start = False
-			n = 0
-			for i in range(-1,2):
-				for j in range(-1,2):
-					if x+i >= 0 and x+i < self._x and y+j >= 0 and y+j < self._y:
-						n += 1
+            for i in range(-1, 2):
+                for j in range(-1, 2):
+                    if x + i >= 0 and x + i < self._x and y + j >= 0 and y + j < self._y:
+                        n -= 1
+                        rest.insert(self._y * (x + i) + (y + j), safe[n])
+            bombs = rest
+        else:
+            shuffle(bombs)
 
-			safe = bombs[0:n]
-			rest = bombs[n:]
-			shuffle(rest)
-	
-			for i in range(-1,2):
-				for j in range(-1,2):
-					if x+i >= 0 and x+i < self._x and y+j >= 0 and y+j < self._y:
-						n -= 1
-						rest.insert(self._y*(x+i)+(y+j),safe[n])
-			bombs = rest
-		else:
-			shuffle(bombs)
+        for i in range(self._x):
+            for j in range(self._y):
+                self.cells[i][j].bomb = bombs[self._y * i + j]
 
-		for i in range(self._x):
-			for j in range(self._y):
-				self.cells[i][j].bomb = bombs[self._y*i + j]
+        for i in range(self._x):
+            for j in range(self._y):
+                self.cells[i][j].adjacent = sum(
+                    x.bomb for x in self.adjacents(i, j))
 
-		for i in range(self._x):
-			for j in range(self._y):
-				self.cells[i][j].adjacent = sum(x.bomb for x in self.adjacents(i,j))
+    def mark(self, x, y):
+        return self.cells[x][y].mark()
 
-	def mark(self,x,y):
-		return self.cells[x][y].mark()
+    def game_over(self):
 
-	def game_over(self):
+        self.parent.settings.finished = True
+        self.parent.settings.animation = True
+        self.parent.dead()
 
-		self.parent.settings.finished = True
-		self.parent.settings.animation = True
-		self.parent.dead()
+        to_open = []
+        for row in self.cells:
+            for c in row:
+                to_open.append(c)
 
-		to_open = []
-		for row in self.cells:
-			for c in row:
-				to_open.append(c)
+        shuffle(to_open)
+        i = 0
 
-		shuffle(to_open)
-		i = 0
+        for a in to_open:
 
-		for a in to_open:
+            i = (i + 1) % self.parent.settings.delay_speed
+            if not self.parent.settings.animation:
+                break
 
-			i = (i+1) % self.parent.settings.delay_speed
-			if not self.parent.settings.animation:
-				break
+            a.open(True)
+            if self.parent.settings.open_delay and i:
+                QtTest.QTest.qWait(self.settings.wait)
 
-			a.open(True)
-			if self.parent.settings.open_delay and i:
-				QtTest.QTest.qWait(self.settings.wait)
+        self.parent.settings.animation = False
 
-		self.parent.settings.animation = False
-			
-	
-		
+    def __str__(self):
+        string = ""
 
-	def __str__(self):
-		string = ""
+        for i in range(self._x):
+            string += "|"
+            for j in range(self._y):
+                string += str(self.cells[i][j]) + "|"
 
-		for i in range(self._x):
-			string += "|"
-			for j in range(self._y):
-				string += str(self.cells[i][j]) + "|"
+            string += "\n"
 
-			string += "\n"
+        return string
 
-		return string
+    @property
+    def x(self):
+        return self._x
 
-	@property
-	def x(self):
-		return self._x
-
-	@property
-	def y(self):
-		return self._y
-
-
-
-
-
-
-
-
+    @property
+    def y(self):
+        return self._y
