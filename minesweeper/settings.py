@@ -22,7 +22,7 @@
 from fnmatch import fnmatch
 from os import listdir
 
-from PyQt4.QtCore import QLibraryInfo, QTranslator
+from PyQt4.QtCore import QLibraryInfo, QTranslator, QString
 from PyQt4.QtGui import QIcon
 
 
@@ -51,10 +51,13 @@ class Settings:
 
 		# Current language
         self.language = None
+        self.game_name = None
 
         # Folders
         self.resource = 'resource/'
         self.translate = 'translate/'
+        self.save = QString('save')
+        self.save_files = QString('*.sav')
         self.translate_folders = [self.translate, str(
             QLibraryInfo.location(QLibraryInfo.TranslationsPath))]
 

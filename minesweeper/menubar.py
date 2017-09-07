@@ -22,9 +22,10 @@
 from __future__ import division
 
 from webbrowser import open as webopen
-
-from PyQt4.QtGui import QMenu, QAction, QFormLayout, QLineEdit, QPushButton, QDialog, QActionGroup, QIntValidator
+from fnmatch import fnmatch
+from PyQt4.QtGui import QMenu, QAction, QFormLayout, QLineEdit, QPushButton, QDialog, QActionGroup, QIntValidator,QFileDialog
 from PyQt4.QtCore import QString
+from save import saveGame
 
 
 class FileMenu(QMenu):
@@ -36,13 +37,22 @@ class FileMenu(QMenu):
 
         # Load Action
         loadAction = QAction("&" + self.tr('Load'), self)
+        loadAction.triggered.connect(self.loadFile)
         loadAction.setShortcut('Ctrl+L')
         self.addAction(loadAction)
 
         # Save Action
         saveAction = QAction("&" + self.tr('Save'), self)
         saveAction.setShortcut('Ctrl+S')
+        saveAction.triggered.connect(self.saveFile)
         self.addAction(saveAction)
+
+        # Save Action
+        saveasAction = QAction("&" + self.tr('Save as'), self)
+        saveasAction.setShortcut('Ctrl+A')
+        saveasAction.triggered.connect(self.saveasFile)
+        self.addAction(saveasAction)
+
 
         # Exit action
         exitAction = QAction("&" + self.tr('Exit'), self)
@@ -50,6 +60,29 @@ class FileMenu(QMenu):
         exitAction.setShortcut('Ctrl+Q')
         self.addAction(exitAction)
 
+    def loadFile(self):
+
+        dlg = QFileDialog(self)
+        fname = dlg.getOpenFileName(self,self.tr('Load game'),self.parent.settings.save,self.parent.settings.save_files)
+
+    def saveFile(self):
+        if not self.parent.settings.game_name:
+            self.saveasFile()
+        else:
+
+            saveGame(self.parent.settings.game_name,self.parent.guiBoard,self.parent.markBar.clock.time,self.parent.settings)
+
+        
+
+    def saveasFile(self):
+        dlg = QFileDialog(self)
+        fname = dlg.getSaveFileName(self,self.tr('Save as'),self.parent.settings.save,self.parent.settings.save_files)
+
+        if fname:
+            if not fnmatch(fname,str(self.parent.settings.save_files)):
+                fname += ".sav"
+            self.parent.settings.game_name = fname
+            self.saveFile()
 
 class GameMenu(QMenu):
     def __init__(self, parent):

@@ -55,6 +55,7 @@ class MainWindow(QtGui.QMainWindow):
         QtGui.QMainWindow.__init__(self)
 
         self.settings = setting
+        self.guiBoard = None
 
         self.setSizePolicy(QtGui.QSizePolicy(
             QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed))
@@ -63,17 +64,12 @@ class MainWindow(QtGui.QMainWindow):
         self.createMenuBar()
 
         self.markBar = ButtonBar(self)
-
         self.centralwidget = QtGui.QWidget()
         self.setCentralWidget(self.centralwidget)
-
         self.vLayout = QtGui.QVBoxLayout(self.centralwidget)
-
         self.vLayout.addWidget(self.markBar)
 
-        self.guiBoard = board.Board(self)
-        self.vLayout.addWidget(self.guiBoard)
-        self.setFixedSize(self.layout().sizeHint())
+        self.new_game()
 
         self.center()
 
@@ -120,6 +116,7 @@ class MainWindow(QtGui.QMainWindow):
 
         resize = False
 
+        self.settings.game_name = None
         if self.settings.b_height != self.settings.l_height or self.settings.b_width != self.settings.l_width:
             resize = True
 
@@ -135,7 +132,9 @@ class MainWindow(QtGui.QMainWindow):
             self.settings.opening = False
             QtTest.QTest.qWait(2 * self.settings.wait)
 
-        self.guiBoard.deleteLater()
+        if self.guiBoard:
+            self.guiBoard.deleteLater()
+
         self.markBar.flags.start()
         self.settings.started = False
         self.settings.finished = False
