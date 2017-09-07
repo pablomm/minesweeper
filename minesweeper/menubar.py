@@ -23,8 +23,8 @@ from __future__ import division
 
 from webbrowser import open as webopen
 from fnmatch import fnmatch
-from PyQt4.QtGui import QMenu, QAction, QFormLayout, QLineEdit, QPushButton, QDialog, QActionGroup, QIntValidator,QFileDialog
-from PyQt4.QtCore import QString
+from PyQt4.QtGui import *
+from PyQt4.QtCore import *
 from save import saveGame
 
 
@@ -364,10 +364,14 @@ class DifficultyPopUP(QDialog):
         self.layout = QFormLayout(self)
         self.setWindowTitle(self.tr("Porcentage of mines"))
 
-        self.minesInput = QLineEdit()
-        self.minesInput.setValidator(QIntValidator(1, 100))
-        self.minesInput.setPlaceholderText(
-            QString(str(int(self.parent.parent.settings.mines_percent * 100)) + str('%')))
+        self.sl = QSlider(Qt.Horizontal)
+        self.sl.setMinimum(1)
+        self.sl.setMaximum(100)
+        self.sl.setValue(int(self.parent.parent.settings.mines_percent*100))
+        self.sl.setTickPosition(QSlider.TicksBelow)
+        self.sl.setTickInterval(5)
+
+
 
         self.accept = QPushButton(self.tr("Accept"))
         self.accept.clicked.connect(self.submit)
@@ -375,11 +379,10 @@ class DifficultyPopUP(QDialog):
         self.cancel = QPushButton(self.tr("Cancel"))
         self.cancel.clicked.connect(self.close)
 
-        self.layout.addRow(self.minesInput)
+        self.layout.addRow(self.sl)
         self.layout.addRow(self.accept, self.cancel)
 
     def submit(self):
 
-        self.parent.parent.updateMines(None if self.minesInput.text(
-        ).isEmpty() else (float(self.minesInput.text()) / 100))
+        self.parent.parent.updateMines(self.sl.value()/100.0)
         self.close()
