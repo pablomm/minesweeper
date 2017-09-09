@@ -43,6 +43,7 @@ class Cell(QtGui.QPushButton):
         self.x = x
         self.y = y
         self.explored = False
+        self.setStyleSheet("QPushButton { padding-left: 7px; padding-bottom: 3px; }")
 
     @property
     def bomb(self):
