@@ -73,6 +73,11 @@ class MainWindow(QtGui.QMainWindow):
 
         self.center()
 
+    def getTime(self):
+        if self.markBar:
+            return self.markBar.clock.time
+        return 0
+
     def dead(self):
 
         self.markBar.clock.stop()
